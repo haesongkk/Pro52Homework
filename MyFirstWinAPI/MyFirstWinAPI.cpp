@@ -108,8 +108,8 @@ void PrintStr(HWND hWnd, HDC hdc)
 void Marker(LONG x, LONG y, HWND hwnd)
 {
     HDC hdc;
-
     hdc = GetDC(hwnd);
+
     MoveToEx(hdc, (int)x - 10, (int)y, (LPPOINT)NULL);
     LineTo(hdc, (int)x + 10, (int)y);
     MoveToEx(hdc, (int)x, (int)y - 10, (LPPOINT)NULL);
