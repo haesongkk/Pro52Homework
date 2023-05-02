@@ -5,24 +5,18 @@ namespace game
 	class GAMEMANAGER
 	{
 	public:
-		GAMEMANAGER();
 
+		GAMEMANAGER();
 		~GAMEMANAGER();
 
 		void Initialize();
-
 		void Update();
-
 		void FixeUpdate();
-
 		void Render();
-
 		void Finalize();
-
 		void Run();
 
 		static GAMEMANAGER* GetInstance();
-
 		static void DestroyInstance();
 
 	private:

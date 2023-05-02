@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{09d25825-2adf-4891-bccb-4463a59c4726}</ProjectGuid>
-    <RootNamespace>MyFirstConsoleGame</RootNamespace>
+    <ProjectGuid>{46a518cb-537e-4a35-a031-da70b339006d}</ProjectGuid>
+    <RootNamespace>TimeTest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,13 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="inputSystem.cpp" />
-    <ClCompile Include="MyFirstConsoleGame.cpp" />
-    <ClCompile Include="renderSystem.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="inputSystem.h" />
-    <ClInclude Include="renderSystem.h" />
+    <ClCompile Include="TimeTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

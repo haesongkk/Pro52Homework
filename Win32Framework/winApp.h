@@ -12,19 +12,16 @@ public:
 	~WINAPP() = default;
 
 	void Initialize(HINSTANCE hinstance);
-
 	void Run();
-
 	void Finalize();
 
 	HINSTANCE GetInstance()const { return hInstance; }
-
 	HWND GetWindow() const { return hWnd; }
-
 	const int GetWidth() const { return width; }
 	const int GetHeight() const { return height; }
 
-	// 함수에 붙은 static 은 선언은 내부에서 했지만 소속은 외부에 있음 (?)
+	// static 함수
+	// 선언은 내부에서 했지만 소속은 외부에 있음 (?)
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:

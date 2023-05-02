@@ -1,6 +1,9 @@
 ﻿#include <stdio.h>
 #include <windows.h>
-#include "InputSystem.h" // 기능 별로 모듈화를 한다는 개념에 대해 생각해 봅시다!
+#include <random>
+
+#include "inputSystem.h" // 기능 별로 모듈화를 한다는 개념에 대해 생각해 봅시다!
+#include "renderSystem.h"
 
 namespace global
 {
@@ -32,13 +35,32 @@ namespace global
         }
     };
 
-    COORD prePlayerPos; // 기존 플레이어 위치
+    //COORD prePlayerPos; // 기존 플레이어 위치
+    //COORD curPlayerPos; // 현재 플레이어 위치
+
+    //SMALL_RECT consoleScreenSize;
+    //SMALL_RECT playerMovableRect = { 5, 5, 30, 30 }; // 플레이어가 이동이 가능한 영역
+
+    //const int playerMoveSpeed = 200;
+
     COORD curPlayerPos; // 현재 플레이어 위치
 
-    SMALL_RECT consoleScreenSize;
-    SMALL_RECT playerMovableRect = { 5, 5, 30, 30 }; // 플레이어가 이동이 가능한 영역
+    COORD enemyWorldBasis = { 10, 2 };
+
+    SMALL_RECT playerMovableRect = { 5, 5, 30, 30 }; // @SEE StartGame()
 
     const int playerMoveSpeed = 200;
+
+
+    // 노가다로-0- 적을 만들어 봅시다.
+    const int ENEMY_CNT = 10;
+    struct Enemy
+    {
+        COORD localPos;
+        char  character;
+    };
+
+    Enemy consoleEnemy[ENEMY_CNT];
 
 };
 void Clamp(short& n, short min, short max) // 레퍼런스 타입에 대해 배워 봅시다.
@@ -54,50 +76,61 @@ void GotoXY(int x, int y)
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Cur);
 }
 
-void DrawPlayer(bool bClear)
+void DrawPlayer()
 {
-    if (bClear)
-    {
-        // 플레이어 기존 위치
-        GotoXY(global::prePlayerPos.X, global::prePlayerPos.Y);
-        putchar(' ');
-    }
+    //if (bClear)
+    //{
+    //    // 플레이어 기존 위치
+    //    GotoXY(global::prePlayerPos.X, global::prePlayerPos.Y);
+    //    putchar(' ');
+    //}
 
-    // 플레이어 현재 위치
-    GotoXY(global::curPlayerPos.X, global::curPlayerPos.Y);
-    putchar('@');
+    //// 플레이어 현재 위치
+    //GotoXY(global::curPlayerPos.X, global::curPlayerPos.Y);
+    //putchar('@');
+
+    render::ScreenDraw(global::curPlayerPos.X, global::curPlayerPos.Y, '@');
+}
+
+void DrawEnemy()
+{
+    int x = 0; int y = 0;
+
+    // 노가다로 그리는 적
+    for (int i = 0; i < global::ENEMY_CNT; i++)
+    {
+        x = global::enemyWorldBasis.X + global::consoleEnemy[i].localPos.X;
+        y = global::enemyWorldBasis.Y + global::consoleEnemy[i].localPos.Y;
+
+        render::ScreenDraw(x, y, global::consoleEnemy[i].character);
+    }
 }
 
 void UpdatePlayerPosition()
 {
-    global::prePlayerPos = global::curPlayerPos; // 현재 위치 경신 전에 일단, 저장. 구조체를 쓰면 이런게 편한겁니다. :)
+    //global::prePlayerPos = global::curPlayerPos; // 현재 위치 경신 전에 일단, 저장. 구조체를 쓰면 이런게 편한겁니다. :)
 
-    if (global::input::IsUpKeyOn())
+    if (global::input::IsEscapeCmdOn())
     {
-        global::input::Set(global::input::UP_KEY_INDEX, false);
+        global::input::Set(global::input::ESCAPE_KEY_INDEX, false);
 
-        global::curPlayerPos.Y--;
-        Clamp(global::curPlayerPos.Y, global::playerMovableRect.Top, global::playerMovableRect.Bottom); // 이동 범위를 제한 합니다. 
+        //TODO: 게임 화면 전환이나 종료 처리
+
+        return; // 다른 키 입력을 신경 쓸 필요가 없어요.
     }
 
-    if (global::input::IsDownKeyOn())
+   
+    if (global::input::IsLeftCmdOn())
     {
-        global::input::Set(global::input::DOWN_KEY_INDEX, false);
-
-        global::curPlayerPos.Y++;
-        Clamp(global::curPlayerPos.Y, global::playerMovableRect.Top, global::playerMovableRect.Bottom);
-    }
-    if (global::input::IsLeftKeyOn())
-    {
-        global::input::Set(global::input::LEFT_KEY_INDEX, false);
+        global::input::Set(global::input::USER_CMD_LEFT, false);
 
         global::curPlayerPos.X--;
         Clamp(global::curPlayerPos.X, global::playerMovableRect.Left, global::playerMovableRect.Right);
     }
 
-    if (global::input::IsRightKeyOn())
+    if (global::input::IsRightCmdOn())
     {
-        global::input::Set(global::input::RIGHT_KEY_INDEX, false);
+        global::input::Set(global::input::USER_CMD_RIGHT, false);
 
         global::curPlayerPos.X++;
         Clamp(global::curPlayerPos.X, global::playerMovableRect.Left, global::playerMovableRect.Right);
@@ -117,6 +150,20 @@ void UpdatePlayer()
 
         elapsedTime -= global::playerMoveSpeed;
     }
+}
+
+void UpdateEnemy()
+{
+    if (global::enemyWorldBasis.Y == global::playerMovableRect.Bottom)
+    {
+        global::enemyWorldBasis.Y = global::playerMovableRect.Top;
+
+        return;
+    }
+
+    global::enemyWorldBasis.Y++;
+
+    Clamp(global::enemyWorldBasis.Y, global::playerMovableRect.Top, global::playerMovableRect.Bottom);
 }
 
 void DrawMovableRect()
@@ -152,40 +199,32 @@ void DrawMovableRect()
 
 void StartGame()
 {
-    // 깜박이는 커서를 좀 진정 시키자.
-    CONSOLE_CURSOR_INFO cursorInfo = { 0, };
-    cursorInfo.bVisible = 0; // 커서를 보일지 말지 결정(0이면 안보임, 0제외 숫자 값이면 보임)
-    cursorInfo.dwSize = 1; // 커서의 크기를 결정 (1~100 사이만 가능)
-    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+    render::InitScreen();
 
-    // 콘솔창 크기를 가져 오고
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    global::playerMovableRect = render::GetPlayerMovableRect();
 
-    global::consoleScreenSize.Left = csbi.srWindow.Left;
-    global::consoleScreenSize.Right = csbi.srWindow.Right;
-    global::consoleScreenSize.Bottom = csbi.srWindow.Bottom;
-    global::consoleScreenSize.Top = csbi.srWindow.Top;
-
-    // 플레이어가 이동 가능한 영역을 설정 하자. 
-    global::playerMovableRect.Left = global::consoleScreenSize.Left + 2;
-    global::playerMovableRect.Right = global::consoleScreenSize.Right - 2;
-    global::playerMovableRect.Bottom = global::consoleScreenSize.Bottom - 2;
-    global::playerMovableRect.Top = global::consoleScreenSize.Top + 2;
-
-    DrawMovableRect(); // 벽을 그려 놓자!
+    render::DrawBorder(); // 벽을 그려 놓자!
 
     // 플레이어 시작 위치 설정
-    global::prePlayerPos.X = 10;
-    global::prePlayerPos.Y = 10;
-    global::curPlayerPos.X = 10;
-    global::curPlayerPos.Y = 10;
+    global::curPlayerPos.X = global::playerMovableRect.Left + (global::playerMovableRect.Left + global::playerMovableRect.Right) / 2;
+    global::curPlayerPos.Y = global::playerMovableRect.Bottom - 2;
 
-    DrawPlayer(false);
+    // 노가다로 만드는 적
+    for (int i = 0; i < global::ENEMY_CNT; i++)
+    {
+        global::consoleEnemy[i].character = 'A' + i;
+        global::consoleEnemy[i].localPos.X = i * 10;
+        global::consoleEnemy[i].localPos.Y = 0; // Y 는 고정.
+    }
+
+    DrawPlayer();
+
+    DrawEnemy();
 }
+
 void EndGame()
 {
-
+    render::ScreenRelease();
 }
 
 void ProcessInput()
@@ -198,18 +237,13 @@ void PrintPlayerPostion();
 
 void Render()
 {
-    GotoXY(0, 0); // 프레임 카운트 출력 위치
+    render::ScreenClear();
     PrintCountsPerSecond();
-
-    GotoXY(50, 0); // 플레이어 위치 정보
     PrintPlayerPostion();
-
-    // 위치가 달라지면 갱신
-    if ((global::prePlayerPos.X != global::curPlayerPos.X) || (global::prePlayerPos.Y != global::curPlayerPos.Y))
-    {
-        DrawPlayer(true);
-    }
-
+    DrawPlayer();
+    DrawEnemy();
+    //render::DrawBorder();
+    render::ScreenFlipping();
 }
 
 bool IsGameRun()
@@ -220,45 +254,49 @@ bool IsGameRun()
 void FixeUpdate()
 {
     static ULONGLONG elapsedTime;
-
     elapsedTime += global::time::GetDeltaTime();
+
     while (elapsedTime >= 20) //0.02초
     {
         global::time::fixedUpdateCount += 1;
-
         elapsedTime -= 20;
+        UpdateEnemy();
     }
 }
 
 void Update()
 {
     global::time::updateCount += 1;
-
     UpdatePlayer();
-
 }
 
 void PrintPlayerPostion()
 {
-    printf("Player Position (%d, %d)", global::curPlayerPos.X, global::curPlayerPos.Y);
+    char buffer[64] = "";
+    sprintf_s(buffer, "Player Position (%d, %d)", global::curPlayerPos.X, global::curPlayerPos.Y);
+
+    render::ScreenDraw(50, 0, buffer);
 }
 
 void PrintCountsPerSecond()
 {
     static ULONGLONG elapsedTime;
-
     elapsedTime += global::time::GetDeltaTime();
     if (elapsedTime >= 1000)
     {
-        printf("updateCount : %d \t fixedUpdateCount : %d \n",
-            global::time::updateCount, global::time::fixedUpdateCount);
+        char buffer[64] = "";
 
+        sprintf_s(buffer, "updateCount : %d fixedUpdateCount : %d  delta %2d\n",
+            global::time::updateCount, global::time::fixedUpdateCount, global::time::GetDeltaTime());
+
+        render::ScreenDraw(0, 0, buffer);
 
         elapsedTime = 0;
         global::time::updateCount = 0;
         global::time::fixedUpdateCount = 0;
     }
 }
+
 int main()
 {
     global::time::InitTime();

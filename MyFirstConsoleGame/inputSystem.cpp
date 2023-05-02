@@ -17,24 +17,19 @@ namespace global
 			inputKeyTable[keyIdx] = bOn;			// bool 타입을 활용 합시다.
 		}
 
-		bool IsLeftKeyOn()
+		bool IsEscapeCmdOn()
 		{
-			return inputKeyTable[LEFT_KEY_INDEX];
+			return inputKeyTable[ESCAPE_KEY_INDEX];
 		}
 
-		bool IsRightKeyOn()
+		bool IsLeftCmdOn()
 		{
-			return inputKeyTable[RIGHT_KEY_INDEX];
+			return inputKeyTable[USER_CMD_LEFT];
 		}
 
-		bool IsUpKeyOn()
+		bool IsRightCmdOn()
 		{
-			return inputKeyTable[UP_KEY_INDEX];
-		}
-
-		bool IsDownKeyOn()
-		{
-			return inputKeyTable[DOWN_KEY_INDEX];
+			return inputKeyTable[USER_CMD_RIGHT];
 		}
 
 		// 입력 키값에 대해 알아 봅시다. 블러킹과 넌블러킹에 대해서만 이해하고 가기로 합니다!!
@@ -47,24 +42,14 @@ namespace global
 				global::input::Set(ESCAPE_KEY_INDEX, true);
 			}
 
-			if (GetAsyncKeyState(VK_LEFT) & 0x8000) //왼쪽
+			if (GetAsyncKeyState('A') & 0x8000) //왼쪽 'A'
 			{
-				global::input::Set(LEFT_KEY_INDEX, true);
+				global::input::Set(USER_CMD_LEFT, true);
 			}
 
-			if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //오른쪽
+			if (GetAsyncKeyState('D') & 0x8000) //오른쪽 'D'
 			{
-				global::input::Set(RIGHT_KEY_INDEX, true);
-			}
-
-			if (GetAsyncKeyState(VK_UP) & 0x8000) //위
-			{
-				global::input::Set(UP_KEY_INDEX, true);
-			}
-
-			if (GetAsyncKeyState(VK_DOWN) & 0x8000) //아래
-			{
-				global::input::Set(DOWN_KEY_INDEX, true);
+				global::input::Set(USER_CMD_RIGHT, true);
 			}
 		}
 	};

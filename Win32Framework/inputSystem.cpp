@@ -10,7 +10,7 @@ namespace input
 	MOUSESTATE curMouse;
 	MOUSESTATE prevMouse;
 
-
+	// 키 값 초기화
 	void ResetInput()
 	{
 		for (int i = 0; i < 256; i++)
@@ -20,32 +20,33 @@ namespace input
 		}
 	}
 
+	// setkey ( gamemanager -> run -> message ) 
 	void KeyDown(unsigned int key)
 	{
 		isKeyDown[key] = true;
 		isKey[key] = true;
 	}
-
 	void KeyUp(unsigned int key)
 	{
 		isKeyUp[key] = true;
 		isKey[key] = false;
 	}
 
+	// getkey
 	bool IsKeyDown(unsigned int key)
 	{
 		return isKeyDown[key];
 	}
-
 	bool IsKeyUp(unsigned int key)
 	{
 		return isKeyUp[key];
 	}
-
 	bool IsKey(unsigned int key)
 	{
 		return isKey[key];
 	}
+
+	// 마우스 초기화
 	void InitMouse()
 	{
 		curMouse.x = global::GetWinApp().GetWidth() / 2;
@@ -61,6 +62,7 @@ namespace input
 		SetCursorPos(curMouse.x, curMouse.y);
 	}
 
+	// 마우스 업데이트
 	void UpdateMouse()
 	{
 		prevMouse = curMouse;
@@ -78,15 +80,19 @@ namespace input
 		curMouse.middle = (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
 	}
 
+	// 현재 마우스 상태 반환
 	const MOUSESTATE& GetMouseState()
 	{
 		return curMouse;
 	}
 
+	// 이전 마우스 상태 반환
 	const MOUSESTATE& GetPrevMouseState()
 	{
 		return prevMouse;
 	}
+
+	// resetinput 왜 따로 있는지..?
 	void InitInput()
 	{
 		for (int i = 0; i < 256; i++)
